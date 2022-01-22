@@ -11,6 +11,7 @@ urlpatterns = [
     path('', views.home, name="home"),
     path('user/', views.userPage, name="user-page"),
     path('products/', views.products, name='products'),
+    path('products_details/<str:pk_test>/', views.products_details, name="products_details"),
     path('customer/<str:pk_test>/', views.customer, name="customer"),
     path('account/', views.accountSettings, name="account"),
 
@@ -38,7 +39,19 @@ urlpatterns = [
         auth_views.PasswordResetCompleteView.as_view(template_name="accounts/password_reset_done.html"), 
         name="password_reset_complete"),
 
-    path('change_password', views.change_password, name='change_password'),
+    path('change_password/', views.change_password, name='change_password'),
+
+    path('api/', views.api, name="api"),
+
+    # Api URLS
+    path('api/order-list/', views.order_list, name="order-list"),
+    path('api/order-detail/<str:pk>/', views.orderDetail, name="order-detail"),
+    path('api/order-create/', views.orderCreate, name="order-create"),
+    path('api/order-update/<str:pk>/', views.orderUpdate, name="order-update"),
+    path('api/order-delete/<str:pk>/', views.orderDelete, name="order-delete"),
+    path('api/customer-list/', views.customer_list, name="customer-list"),
+    path('api/product-list/', views.product_list, name="product-list"),
+
 
 ]
 

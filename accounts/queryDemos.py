@@ -10,7 +10,7 @@ lastCustomer = Customer.objects.last()
 #(4)Returns single customer by name
 customerByName = Customer.objects.get(name='Peter Piper')
 
-#***(5)Returns single customer by name
+#***(5)Returns single customer by id
 customerById = Customer.objects.get(id=4)
 
 #***(6)Returns all orders related to customer (firstCustomer variable set above)

@@ -1,0 +1,13 @@
+asgiref
+autopep8
+django==3.2.5
+pycodestyle
+pytz
+sqlparse
+Unipath
+dj-database-url
+python-decouple
+gunicorn
+whitenoise
+django-cors-headers==3.2.1
+djangorestframework==3.11.0

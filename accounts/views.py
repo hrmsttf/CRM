@@ -12,11 +12,17 @@ from django.contrib.auth.models import Group
 
 # Create your views here.
 from .models import *
+from .models import Customer, Order
 from .forms import OrderForm, CreateUserForm, CustomerForm
 from .decorators import unauthenticated_user, allowed_users, admin_only
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from .serializers import OrderSerializer, CustomerSerializer, OrderCreateSerializer, OrderUpdateSerializer, ProductSerializer
 
 @unauthenticated_user
 def registerPage(request):
@@ -128,15 +134,23 @@ def products(request):
 @allowed_users(allowed_roles=['admin'])
 def customer(request, pk_test):
     customer = Customer.objects.get(id=pk_test)
-
-    orders = customer.order_set.all()
+    orders = customer.customer_order.all()
     order_count = orders.count()
 
-    # myFilter = OrderFilter(request.GET, queryset=orders)
-    # orders = myFilter.qs 
+    # print(orders[0].customer)
 
     context = {'customer':customer, 'orders':orders, 'order_count':order_count}
     return render(request, 'accounts/customer.html',context)
+
+@login_required(login_url='login')
+@allowed_users(allowed_roles=['admin'])
+def products_details(request, pk_test):
+    product = Product.objects.get(id=pk_test)
+    orders = product.product_order.all()
+    order_count = orders.count()
+
+    context = {'product':product, 'orders':orders, 'order_count':order_count}
+    return render(request, 'accounts/product_details.html',context)
 
 
 @login_required(login_url='login')
@@ -256,7 +270,7 @@ def change_password(request):
             user = form.save()
             update_session_auth_hash(request, user)  # Important!
             messages.success(request, 'Your password was successfully updated!')
-            return redirect('/')
+            return redirect('/api/')
         else:
             messages.error(request, 'Please correct the error below.')
     else:
@@ -264,3 +278,84 @@ def change_password(request):
     return render(request, 'accounts/change_password.html', {
         'form': form
     })
+
+
+@api_view(['GET'])
+def api(request):
+
+    api_urls = {
+        'List':'/order-list/',
+        'Detail View':'/task-detail/<str:pk>/',
+        'Create':'/task-create/',
+        'Update':'/task-update/<str:pk>/',
+        'Delete':'/task-delete/<str:pk>/',
+    }
+
+    return Response(api_urls)
+
+
+@api_view(['GET'])
+def order_list(request):
+    orders = Order.objects.filter(is_active = 1).order_by('-id')
+    # print(orders[0].customer.name)
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def customer_list(request):
+    customers = Customer.objects.filter(is_active = 1).order_by('-id')
+    # print(orders[0].customer.name)
+    serializer = CustomerSerializer(customers, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def product_list(request):
+    customers = Product.objects.filter(is_active = 1).order_by('-id')
+    # print(orders[0].customer.name)
+    serializer = ProductSerializer(customers, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def orderDetail(request, pk):
+    tasks = Order.objects.get(id=pk)
+    serializer = OrderSerializer(tasks, many=False)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def orderCreate(request):
+    serializer = OrderCreateSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+
+    return Response(serializer.data)
+
+# {
+#     "status": "Out for delivery",
+#     "customer": "22",
+#     "product": "2"
+# }
+
+
+@api_view(['POST'])
+def orderUpdate(request, pk):
+    order = Order.objects.get(id=pk)
+    serializer = OrderUpdateSerializer(instance=order, data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+
+    return Response(serializer.data)
+
+# {
+#     "status": "Out for delivery",
+# }
+
+
+@api_view(['DELETE'])
+def orderDelete(request, pk):
+    order = Order.objects.get(id=pk)
+    order.delete()
+
+    return Response('Item succsesfully delete!')
