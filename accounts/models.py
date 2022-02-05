@@ -48,10 +48,10 @@ class Order(models.Model):
             ('Delivered', 'Delivered')
         )   
 
-    customer = models.ForeignKey(Customer, null=True, related_name='customer_order', on_delete= models.SET_NULL)
-    product = models.ForeignKey(Product, null=True, related_name='product_order', on_delete= models.SET_NULL)
+    customer = models.ForeignKey(Customer, null=False,  blank=False, related_name='customer_order', on_delete= models.CASCADE)
+    product = models.ForeignKey(Product, null=False, blank=False, related_name='product_order', on_delete= models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
-    status = models.CharField(max_length=200, null=True, choices=STATUS)
+    status = models.CharField(max_length=200, null=False, blank=False, choices=STATUS)
     is_active = models.PositiveIntegerField(null=True, default=1)
 
     def __str__(self):

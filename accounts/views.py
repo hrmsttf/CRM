@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect 
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.forms import inlineformset_factory
 from django.contrib.auth.forms import UserCreationForm
 
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login as auth_login , logout as auth_logout
 
 from django.contrib import messages
 
@@ -19,10 +19,54 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from .serializers import OrderSerializer, CustomerSerializer, OrderCreateSerializer, OrderUpdateSerializer, ProductSerializer
+from .serializers import OrderSerializer, CustomerSerializer, OrderCreateSerializer, OrderUpdateSerializer, ProductSerializer, UserSerializer
+
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
+from rest_framework.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+    HTTP_200_OK
+)
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import generics
+from .pagination import PaginationPage
+from rest_framework.pagination import PageNumberPagination
+
+
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes((AllowAny,))
+def login(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    if username is None or password is None:
+        return Response({'error': 'Please provide both username and password'},
+                        status=HTTP_400_BAD_REQUEST)
+    user = authenticate(username=username, password=password)
+    if not user:
+        return Response({'error': 'Invalid Credentials'},
+                        status=HTTP_404_NOT_FOUND)
+    token, _ = Token.objects.get_or_create(user=user)
+    user_id = Token.objects.get(key=token.key).user_id
+    user = User.objects.get(id=user_id)
+    serializer = UserSerializer(user)
+    return Response({'token': token.key, "user": serializer.data},
+                    status=HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes((AllowAny,))
+def logout(request):
+    request.user.auth_token.delete()
+    return Response(status=HTTP_200_OK)
+
 
 @unauthenticated_user
 def registerPage(request):
@@ -45,22 +89,22 @@ def registerPage(request):
             messages.success(request, 'Account was created for ' + username)
 
             return redirect('login')
-        
 
-    context = {'form':form}
+    context = {'form': form}
     return render(request, 'accounts/register.html', context)
+
 
 @unauthenticated_user
 def loginPage(request):
 
     if request.method == 'POST':
         username = request.POST.get('username')
-        password =request.POST.get('password')
-
+        password = request.POST.get('password')
+       
         user = authenticate(request, username=username, password=password)
-
+        
         if user is not None:
-            login(request, user)
+            auth_login(request, user)
             return redirect('home')
         else:
             messages.info(request, 'Username OR password is incorrect')
@@ -68,11 +112,13 @@ def loginPage(request):
     context = {}
     return render(request, 'accounts/login.html', context)
 
-def logoutUser(request):
-    logout(request)
-    return redirect('login')
 
-@login_required(login_url='login')
+def logoutPage(request):
+    auth_logout(request)
+    return redirect('login_web')
+
+
+@login_required(login_url='login_web')
 @admin_only
 def home(request):
     orders = Order.objects.all()
@@ -84,14 +130,14 @@ def home(request):
     delivered = orders.filter(status='Delivered').count()
     pending = orders.filter(status='Pending').count()
 
-    context = {'orders':orders, 'customers':customers,
-    'total_orders':total_orders,'delivered':delivered,
-    'pending':pending }
+    context = {'orders': orders, 'customers': customers,
+               'total_orders': total_orders, 'delivered': delivered,
+               'pending': pending}
 
     return render(request, 'accounts/dashboard.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='login_web')
 @allowed_users(allowed_roles=['customer'])
 def userPage(request):
     orders = request.user.customer.order_set.all()
@@ -100,37 +146,35 @@ def userPage(request):
     delivered = orders.filter(status='Delivered').count()
     pending = orders.filter(status='Pending').count()
 
-    context = {'orders':orders, 'total_orders':total_orders,
-    'delivered':delivered,'pending':pending}
+    context = {'orders': orders, 'total_orders': total_orders,
+               'delivered': delivered, 'pending': pending}
     return render(request, 'accounts/user.html', context)
 
 
-
-@login_required(login_url='login')
+@login_required(login_url='login_web')
 @allowed_users(allowed_roles=['customer'])
 def accountSettings(request):
     customer = request.user.customer
     form = CustomerForm(instance=customer)
 
     if request.method == 'POST':
-        form = CustomerForm(request.POST, request.FILES,instance=customer)
+        form = CustomerForm(request.POST, request.FILES, instance=customer)
         if form.is_valid():
             form.save()
 
-
-    context = {'form':form}
+    context = {'form': form}
     return render(request, 'accounts/account_settings.html', context)
 
 
-
-@login_required(login_url='login')
+@login_required(login_url='login_web')
 @allowed_users(allowed_roles=['admin'])
 def products(request):
     products = Product.objects.all()
 
-    return render(request, 'accounts/products.html', {'products':products})
+    return render(request, 'accounts/products.html', {'products': products})
 
-@login_required(login_url='login')
+
+@login_required(login_url='login_web')
 @allowed_users(allowed_roles=['admin'])
 def customer(request, pk_test):
     customer = Customer.objects.get(id=pk_test)
@@ -139,21 +183,24 @@ def customer(request, pk_test):
 
     # print(orders[0].customer)
 
-    context = {'customer':customer, 'orders':orders, 'order_count':order_count}
-    return render(request, 'accounts/customer.html',context)
+    context = {'customer': customer,
+               'orders': orders, 'order_count': order_count}
+    return render(request, 'accounts/customer.html', context)
 
-@login_required(login_url='login')
+
+@login_required(login_url='login_web')
 @allowed_users(allowed_roles=['admin'])
 def products_details(request, pk_test):
     product = Product.objects.get(id=pk_test)
     orders = product.product_order.all()
     order_count = orders.count()
 
-    context = {'product':product, 'orders':orders, 'order_count':order_count}
-    return render(request, 'accounts/product_details.html',context)
+    context = {'product': product, 'orders': orders,
+               'order_count': order_count}
+    return render(request, 'accounts/product_details.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='login_web')
 @allowed_users(allowed_roles=['admin'])
 def createOrder(request):
     form = OrderForm()
@@ -165,11 +212,11 @@ def createOrder(request):
             messages.success(request, 'Order created successfully!')
             return redirect('/')
 
-    context = {'form':form}
+    context = {'form': form}
     return render(request, 'accounts/order_form.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='login_web')
 @allowed_users(allowed_roles=['admin'])
 def updateOrder(request, pk):
 
@@ -183,11 +230,11 @@ def updateOrder(request, pk):
             messages.success(request, 'Order updated successfully!')
             return redirect('/')
 
-    context = {'form':form}
+    context = {'form': form}
     return render(request, 'accounts/order_form.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='login_web')
 @allowed_users(allowed_roles=['admin'])
 def deleteOrder(request, pk):
     order = Order.objects.get(id=pk)
@@ -196,11 +243,11 @@ def deleteOrder(request, pk):
         messages.success(request, 'Order deleted successfully!')
         return redirect('/')
 
-    context = {'item':order}
+    context = {'item': order}
     return render(request, 'accounts/delete.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='login_web')
 @admin_only
 def createCustomer(request):
     form = CustomerForm()
@@ -214,7 +261,8 @@ def createCustomer(request):
             phone = form.cleaned_data.get('phone')
             # print(username);
 
-            user = User.objects.create_user(username=username, email=email, password='admin@123')
+            user = User.objects.create_user(
+                username=username, email=email, password='admin@123')
             group = Group.objects.get(name='customer')
             user.groups.add(group)
 
@@ -231,11 +279,11 @@ def createCustomer(request):
 
             return redirect('/')
 
-    context = {'form':form}
+    context = {'form': form}
     return render(request, 'accounts/customer_form.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='login_web')
 @admin_only
 def updateCustomer(request, pk):
 
@@ -248,10 +296,11 @@ def updateCustomer(request, pk):
             form.save()
             return redirect('/')
 
-    context = {'form':form}
+    context = {'form': form}
     return render(request, 'accounts/customer_form.html', context)
 
-@login_required(login_url='login')
+
+@login_required(login_url='login_web')
 @admin_only
 def deleteCustomer(request, pk):
     customer = Customer.objects.get(id=pk)
@@ -259,7 +308,7 @@ def deleteCustomer(request, pk):
         customer.delete()
         return redirect('/')
 
-    context = {'item':customer}
+    context = {'item': customer}
     return render(request, 'accounts/delete_customer.html', context)
 
 
@@ -269,7 +318,8 @@ def change_password(request):
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)  # Important!
-            messages.success(request, 'Your password was successfully updated!')
+            messages.success(
+                request, 'Your password was successfully updated!')
             return redirect('/api/')
         else:
             messages.error(request, 'Please correct the error below.')
@@ -284,11 +334,11 @@ def change_password(request):
 def api(request):
 
     api_urls = {
-        'List':'/order-list/',
-        'Detail View':'/task-detail/<str:pk>/',
-        'Create':'/task-create/',
-        'Update':'/task-update/<str:pk>/',
-        'Delete':'/task-delete/<str:pk>/',
+        'List': '/order-list/',
+        'Detail View': '/task-detail/<str:pk>/',
+        'Create': '/task-create/',
+        'Update': '/task-update/<str:pk>/',
+        'Delete': '/task-delete/<str:pk>/',
     }
 
     return Response(api_urls)
@@ -296,14 +346,15 @@ def api(request):
 
 @api_view(['GET'])
 def order_list(request):
-    orders = Order.objects.filter(is_active = 1).order_by('-id')
+    orders = Order.objects.filter(is_active=1).order_by('-id')
     # print(orders[0].customer.name)
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
 
+
 @api_view(['GET'])
 def customer_list(request):
-    customers = Customer.objects.filter(is_active = 1).order_by('-id')
+    customers = Customer.objects.filter(is_active=1).order_by('-id')
     # print(orders[0].customer.name)
     serializer = CustomerSerializer(customers, many=True)
     return Response(serializer.data)
@@ -311,10 +362,11 @@ def customer_list(request):
 
 @api_view(['GET'])
 def product_list(request):
-    customers = Product.objects.filter(is_active = 1).order_by('-id')
+    customers = Product.objects.filter(is_active=1).order_by('-id')
     # print(orders[0].customer.name)
     serializer = ProductSerializer(customers, many=True)
     return Response(serializer.data)
+
 
 @api_view(['GET'])
 def orderDetail(request, pk):
@@ -322,14 +374,15 @@ def orderDetail(request, pk):
     serializer = OrderSerializer(tasks, many=False)
     return Response(serializer.data)
 
+
 @api_view(['POST'])
 def orderCreate(request):
     serializer = OrderCreateSerializer(data=request.data)
 
-    if serializer.is_valid():
+    if serializer.is_valid(raise_exception=True):
         serializer.save()
 
-    return Response(serializer.data)
+    return Response('Order created successfully..',)
 
 # {
 #     "status": "Out for delivery",
@@ -343,10 +396,10 @@ def orderUpdate(request, pk):
     order = Order.objects.get(id=pk)
     serializer = OrderUpdateSerializer(instance=order, data=request.data)
 
-    if serializer.is_valid():
+    if serializer.is_valid(raise_exception=True):
         serializer.save()
 
-    return Response(serializer.data)
+    return Response(serializer.data, status= HTTP_200_OK)
 
 # {
 #     "status": "Out for delivery",
@@ -359,3 +412,26 @@ def orderDelete(request, pk):
     order.delete()
 
     return Response('Item succsesfully delete!')
+
+
+# Pagination with ApiView with class based
+class ClassOrderList(APIView):
+
+    def get(self, request, format=None):
+        paginator = PageNumberPagination()
+        paginator.page_size = 1
+        order_list = Order.objects.filter(is_active=1).order_by('-id')
+        results = paginator.paginate_queryset(order_list, request)
+        serializer = OrderSerializer(results, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+
+# Pagination with GenericView with class based
+# class ClassOrderList(generics.ListAPIView):
+#     serializer_class = OrderSerializer
+#     pagination_class = PaginationPage
+
+#     def get_queryset(self):
+#         order_list = Order.objects.filter(is_active = 1).order_by('-id')
+
+#         return order_list

@@ -5,8 +5,8 @@ from . import views
 urlpatterns = [
 
     path('register/', views.registerPage, name="register"),
-    path('login/', views.loginPage, name="login"),  
-    path('logout/', views.logoutUser, name="logout"),
+    path('login_web/', views.loginPage, name="login_web"),  
+    path('logout_web/', views.logoutPage, name="logout_web"),
 
     path('', views.home, name="home"),
     path('user/', views.userPage, name="user-page"),
@@ -44,6 +44,7 @@ urlpatterns = [
     path('api/', views.api, name="api"),
 
     # Api URLS
+    path('api/login/', views.login, name="login"),
     path('api/order-list/', views.order_list, name="order-list"),
     path('api/order-detail/<str:pk>/', views.orderDetail, name="order-detail"),
     path('api/order-create/', views.orderCreate, name="order-create"),
@@ -51,7 +52,10 @@ urlpatterns = [
     path('api/order-delete/<str:pk>/', views.orderDelete, name="order-delete"),
     path('api/customer-list/', views.customer_list, name="customer-list"),
     path('api/product-list/', views.product_list, name="product-list"),
+    path('api/logout/', views.logout, name="logout"),
 
+    # Api's Class based views
+    path('api/class_order_list/', views.ClassOrderList.as_view(), name="class_order_list"),
 
 ]
 

@@ -1,9 +1,14 @@
 from rest_framework import serializers
 from .models import *
+from django.contrib.auth.models import User
 
 # * Notes *
 # (depth: 1 or 2 or 3) used to return all the relation table value for only direct relationship not reverse relationship
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'is_staff']
 
 # Show orders and it's customer and product details
 class ProductSerializer(serializers.ModelSerializer):

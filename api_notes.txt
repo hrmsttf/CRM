@@ -1,0 +1,21 @@
+1) ApiView:
+
+	If you want to write all create, update, ... methods yourself you can use APIView and write them in your get, post, put methods.
+
+2) GenericView:
+	
+	If you want to do specific action on model class you can use it.
+	(ListAPIView and Various mixin types and it provides serializer_class, pagination_class and filter_backend)
+
+3) ViewSet:
+	
+	Several actions in one class and basic or simple CRUD.
+	(list,retrieve,create,update/partial_update,destroy) =>ModelViewSet
+
+4)Fuction based view:
+	
+	And if you want to write everything from scratch you can write your apis in function base.
+
+Notes:
+	1)Difference between APIView & GenericView is only you cant use some builtin methods in your class , like queryset, serializer_class in GenericView.
+	
