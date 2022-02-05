@@ -37,6 +37,8 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from .pagination import PaginationPage
 from rest_framework.pagination import PageNumberPagination
+from django.core.paginator import Paginator, EmptyPage
+from rest_framework import status
 
 
 @csrf_exempt
@@ -351,6 +353,17 @@ def order_list(request):
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
 
+# Pagination in function based view - rest
+# @api_view(['GET'])
+# def order_list(request):
+#     paginator = PageNumberPagination()
+#     paginator.page_size = 2
+#     orders = Order.objects.filter(is_active=1).order_by('-id')
+#     result_page = paginator.paginate_queryset(orders, request)
+#     serializer = OrderSerializer(result_page, many=True)
+#     # return Response(serializer.data)
+#     return paginator.get_paginated_response(serializer.data)
+
 
 @api_view(['GET'])
 def customer_list(request):
@@ -425,6 +438,26 @@ class ClassOrderList(APIView):
         serializer = OrderSerializer(results, many=True)
         return paginator.get_paginated_response(serializer.data)
 
+    def post(self, request, format=None):
+        serializer = OrderCreateSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk, format=None):
+        order = Order.objects.get(id=pk)
+        serializer = OrderUpdateSerializer(instance=order, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        order = Order.objects.get(id=pk)
+        order.delete()
+        return Response('Order succsesfully deleted!', status=status.HTTP_204_NO_CONTENT)
+       
 
 # Pagination with GenericView with class based
 # class ClassOrderList(generics.ListAPIView):
