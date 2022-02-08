@@ -39,6 +39,9 @@ from .pagination import PaginationPage
 from rest_framework.pagination import PageNumberPagination
 from django.core.paginator import Paginator, EmptyPage
 from rest_framework import status
+from rest_framework import viewsets
+from django.http import Http404
+from rest_framework.permissions import IsAdminUser, BasePermission, IsAuthenticated
 
 
 @csrf_exempt
@@ -345,24 +348,27 @@ def api(request):
 
     return Response(api_urls)
 
+class IsSuperUser(IsAdminUser):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_superuser)
 
 @api_view(['GET'])
-def order_list(request):
-    orders = Order.objects.filter(is_active=1).order_by('-id')
-    # print(orders[0].customer.name)
-    serializer = OrderSerializer(orders, many=True)
-    return Response(serializer.data)
+@permission_classes((IsAuthenticated, IsSuperUser ))
+# def order_list(request):
+#     orders = Order.objects.filter(is_active=1).order_by('-id')
+#     # print(orders[0].customer.name)
+#     serializer = OrderSerializer(orders, many=True)
+#     return Response(serializer.data)
 
 # Pagination in function based view - rest
-# @api_view(['GET'])
-# def order_list(request):
-#     paginator = PageNumberPagination()
-#     paginator.page_size = 2
-#     orders = Order.objects.filter(is_active=1).order_by('-id')
-#     result_page = paginator.paginate_queryset(orders, request)
-#     serializer = OrderSerializer(result_page, many=True)
-#     # return Response(serializer.data)
-#     return paginator.get_paginated_response(serializer.data)
+def order_list(request):
+    paginator = PageNumberPagination()
+    paginator.page_size = 1
+    orders = Order.objects.filter(is_active=1).order_by('-id')
+    result_page = paginator.paginate_queryset(orders, request)
+    serializer = OrderSerializer(result_page, many=True)
+    # return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
 
 
 @api_view(['GET'])
@@ -445,6 +451,21 @@ class ClassOrderList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+# Pagination with ApiView with class based
+class ClassOrderDetail(APIView):
+
+    def get_object(self, pk):
+        try:
+            return Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = OrderSerializer(snippet)
+        return Response(serializer.data)
+
     def put(self, request, pk, format=None):
         order = Order.objects.get(id=pk)
         serializer = OrderUpdateSerializer(instance=order, data=request.data)
@@ -457,14 +478,42 @@ class ClassOrderList(APIView):
         order = Order.objects.get(id=pk)
         order.delete()
         return Response('Order succsesfully deleted!', status=status.HTTP_204_NO_CONTENT)
-       
+
 
 # Pagination with GenericView with class based
-# class ClassOrderList(generics.ListAPIView):
-#     serializer_class = OrderSerializer
-#     pagination_class = PaginationPage
+class ClassOrderListGen(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    pagination_class = PaginationPage
+    permission_classes = [IsSuperUser]
 
-#     def get_queryset(self):
-#         order_list = Order.objects.filter(is_active = 1).order_by('-id')
+    def get_queryset(self):
+        order_list = Order.objects.filter(is_active = 1).order_by('-id')
 
-#         return order_list
+        return order_list
+
+
+# Pagination with ViewSet with class based
+class OrderViewSet(viewsets.ViewSet):
+  
+    def list(self, request):
+        paginator = PageNumberPagination()
+        paginator.page_size = 1
+        order_list = Order.objects.filter(is_active=1).order_by('-id')
+        results = paginator.paginate_queryset(order_list, request)
+        serializer = OrderSerializer(results, many=True)
+        return paginator.get_paginated_response(serializer.data)
+      
+    def create(self, request):
+        return Response('Create called!', status=status.HTTP_204_NO_CONTENT)
+
+    def retrieve(self, request, pk=None):
+        return Response('Retrieve called!', status=status.HTTP_204_NO_CONTENT)
+
+    def update(self, request, pk=None):
+        return Response('Update called!', status=status.HTTP_204_NO_CONTENT)
+
+    def partial_update(self, request, pk=None):
+        return Response('Partial_update called!', status=status.HTTP_204_NO_CONTENT)
+
+    def destroy(self, request, pk=None):
+        return Response('Destroy called!', status=status.HTTP_204_NO_CONTENT)

@@ -1,20 +1,20 @@
-1) ApiView:
+1) ApiView: (One class and multiple routes)
 
 	If you want to write all create, update, ... methods yourself you can use APIView and write them in your get, post, put methods.
 
-2) GenericView:
+2) GenericView: (multiple class and multiple routes)
 	
 	If you want to do specific action on model class you can use it.
 	(ListAPIView and Various mixin types and it provides serializer_class, pagination_class and filter_backend)
 
-3) ViewSet:
+3) ViewSet: (One class and one route)
 	
-	Several actions in one class and basic or simple CRUD.
-	(list,retrieve,create,update/partial_update,destroy) =>ModelViewSet
+	This is similer to ApiView, multiple actions in one class and basic or simple CRUD and also you need to define all route variable before you call in urls.py file.
+	We can use regular ViewSet (list,retrieve,create,update/partial_update,destroy) or ModelViewSet
 
 4)Fuction based view:
 	
-	And if you want to write everything from scratch you can write your apis in function base.
+	And if you want to write everything from scratch you can write your apis in function base view.
 
 Notes:
 	1)Difference between APIView & GenericView is only you cant use some builtin methods in your class , like queryset, serializer_class in GenericView.

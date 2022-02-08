@@ -2,6 +2,28 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 
+from rest_framework.routers import DefaultRouter
+
+# snippet_detail = views.OrderViewSetr.as_view({
+#     'get': 'retrieve',
+#     'put': 'update',
+#     'patch': 'partial_update',
+#     'delete': 'destroy'
+# })
+
+
+order_list = views.OrderViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
+
+order_detail = views.OrderViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
+
 urlpatterns = [
 
     path('register/', views.registerPage, name="register"),
@@ -43,20 +65,33 @@ urlpatterns = [
 
     path('api/', views.api, name="api"),
 
-    # Api URLS
     path('api/login/', views.login, name="login"),
-    path('api/order-list/', views.order_list, name="order-list"),
-    path('api/order-detail/<str:pk>/', views.orderDetail, name="order-detail"),
-    path('api/order-create/', views.ClassOrderList.as_view(), name="order-create"),
-    path('api/order-update/<str:pk>/', views.ClassOrderList.as_view(), name="order-update"),
-    path('api/order-delete/<str:pk>/', views.ClassOrderList.as_view(), name="order-delete"),
-    path('api/customer-list/', views.customer_list, name="customer-list"),
-    path('api/product-list/', views.product_list, name="product-list"),
     path('api/logout/', views.logout, name="logout"),
 
-    # Api's Class based views
-    path('api/class_order_list/', views.ClassOrderList.as_view(), name="class_order_list"),
+    # Api URLS (Fucntion Based)
+    path('api/order-list/', views.order_list, name="order-list"),
+    path('api/order-create/', views.orderCreate, name="order-create"),
+    path('api/order-detail/<str:pk>/', views.orderDetail, name="order-detail"),
+    path('api/order-update/<str:pk>/', views.orderUpdate, name="order-update"),
+    path('api/order-delete/<str:pk>/', views.orderDelete, name="order-delete"),
+    path('api/customer-list/', views.customer_list, name="customer-list"),
+    path('api/product-list/', views.product_list, name="product-list"),
 
+    # Api URLS (ApiView)
+    path('api/order-list-apiview/', views.ClassOrderList.as_view(), name="order-list-apiview"),
+    path('api/order-create-apiview/', views.ClassOrderList.as_view(), name="order-create-apiview"),
+    path('api/order-detail-apiview/<str:pk>/', views.ClassOrderDetail.as_view(), name="order-detail-apiview"),
+    path('api/order-update-apiview/<str:pk>/', views.ClassOrderDetail.as_view(), name="order-update-apiview"),
+    path('api/order-delete-apiview/<str:pk>/', views.ClassOrderDetail.as_view(), name="order-delete-apiview"),
+
+    # Api URLS (GenericView)
+    path('api/class_order_list/', views.ClassOrderListGen.as_view(), name="class_order_list"),
+
+    # Api URLS (ViewSet)
+    path('api/order_list/', order_list, name='order_list'),
+    path('api/order_detail/<int:pk>/', order_detail, name='order_detail'),
+
+    
 ]
 
 
