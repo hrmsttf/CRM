@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.forms import inlineformset_factory
@@ -42,8 +43,11 @@ from rest_framework import status
 from rest_framework import viewsets
 from django.http import Http404
 from rest_framework.permissions import IsAdminUser, BasePermission, IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 
+# Simple Token base login..
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes((AllowAny,))
@@ -64,13 +68,32 @@ def login(request):
     return Response({'token': token.key, "user": serializer.data},
                     status=HTTP_200_OK)
 
-
+# Simple Token based logout..
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def logout(request):
     request.user.auth_token.delete()
     return Response(status=HTTP_200_OK)
+
+
+# JWT LOGOUT
+# class LogoutView(APIView):
+#     permission_classes = (IsAuthenticated,)
+
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             user_id = request.user.id  
+#             token = request.auth
+#             # print(user_id)
+#             get_token = OutstandingToken.objects.filter(user_id = user_id).order_by('-id')[0]
+#             # print(get_token.id)
+#             create = BlacklistedToken.objects.create(user_id=user_id, token_id = get_token.id, tk = token, blacklisted_at = datetime.now() )
+           
+#             return Response(status=status.HTTP_205_RESET_CONTENT)
+#         except Exception as e:
+#             return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @unauthenticated_user
@@ -348,6 +371,22 @@ def api(request):
 
     return Response(api_urls)
 
+# JWT permission check..
+# class IsTokenValid(BasePermission):
+#     def has_permission(self, request, view):
+#         user_id = request.user.id            
+#         is_allowed_user = True
+#         # token = request.auth
+#         token = request.auth
+#         # print(token)
+#         try:
+#             is_blackListed = BlacklistedToken.objects.get(user=user_id, tk=token)
+#             if is_blackListed:
+#                 is_allowed_user = False
+#         except BlacklistedToken.DoesNotExist:
+#             is_allowed_user = True
+#         return is_allowed_user
+
 class IsSuperUser(IsAdminUser):
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_superuser)
@@ -363,7 +402,7 @@ class IsSuperUser(IsAdminUser):
 # Pagination in function based view - rest
 def order_list(request):
     paginator = PageNumberPagination()
-    paginator.page_size = 1
+    paginator.page_size = 5
     orders = Order.objects.filter(is_active=1).order_by('-id')
     result_page = paginator.paginate_queryset(orders, request)
     serializer = OrderSerializer(result_page, many=True)

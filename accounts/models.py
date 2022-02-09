@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 # Create your models here.
 
@@ -12,8 +13,12 @@ class Customer(models.Model):
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     is_active = models.PositiveIntegerField(null=True, default=1)
 
+    BlacklistedToken.add_to_class('tk', models.CharField(max_length=500,null=True))
+    BlacklistedToken.add_to_class('user', models.ForeignKey(User,blank=True, null=True, related_name='user_id_jwt', on_delete= models.SET_NULL))
+   
     def __str__(self):
         return self.name
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=200, null=True)

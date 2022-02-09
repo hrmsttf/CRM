@@ -11,6 +11,11 @@ from rest_framework.routers import DefaultRouter
 #     'delete': 'destroy'
 # })
 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 
 order_list = views.OrderViewSet.as_view({
     'get': 'list',
@@ -65,6 +70,12 @@ urlpatterns = [
 
     path('api/', views.api, name="api"),
 
+    # JWT based login..
+    # path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('api/login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('api/logout/', views.LogoutView.as_view(), name='auth_logout'),
+
+    # Simple Token based login..
     path('api/login/', views.login, name="login"),
     path('api/logout/', views.logout, name="logout"),
 
