@@ -10,7 +10,7 @@ from django.contrib import messages
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-
+ 
 # Create your views here.
 from .models import *
 from .models import Customer, Order
@@ -45,7 +45,8 @@ from django.http import Http404
 from rest_framework.permissions import IsAdminUser, BasePermission, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
-
+from faker import Faker
+from .thread import CreateProductThread
 
 # Simple Token base login..
 @csrf_exempt
@@ -149,6 +150,11 @@ def logoutPage(request):
 @login_required(login_url='login_web')
 @admin_only
 def home(request):
+
+    # Threading is concept to run operation in the background because some tasks will take more to complete that time we can use threading concept.. 
+    # count = 5
+    # CreateProductThread(count).start()
+
     orders = Order.objects.all()
     customers = Customer.objects.all()
 
