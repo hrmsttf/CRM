@@ -1,5 +1,8 @@
+from distutils.command.upload import upload
+from statistics import mode
 from django.db import models
 from django.contrib.auth.models import User
+from django.forms import FileField
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 # Create your models here.
@@ -38,7 +41,7 @@ class Product(models.Model):
     category = models.CharField(max_length=200, null=True,  choices=CATEGORY)
     description = models.CharField(max_length=200, null=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
-    tags = models.ManyToManyField(Tag)
+    # tags = models.ManyToManyField(Tag)
     is_active = models.PositiveIntegerField(null=True, default=1)
 
     def __str__(self):
@@ -61,6 +64,10 @@ class Order(models.Model):
 
     def __str__(self):
         return self.product.name
+
+class Import(models.Model):
+    files = models.FileField(upload_to = "excel")
+
 
 
 

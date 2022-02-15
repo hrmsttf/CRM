@@ -1,6 +1,7 @@
 from datetime import datetime
+from urllib import request
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.forms import inlineformset_factory
 from django.contrib.auth.forms import UserCreationForm
 
@@ -47,6 +48,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from faker import Faker
 from .thread import CreateProductThread
+import pandas as pd
+from django.conf import settings
 
 # Simple Token base login..
 @csrf_exempt
@@ -174,7 +177,7 @@ def home(request):
 @login_required(login_url='login_web')
 @allowed_users(allowed_roles=['customer'])
 def userPage(request):
-    orders = request.user.customer.order_set.all()
+    orders = request.user.customer.customer_order.all()
 
     total_orders = orders.count()
     delivered = orders.filter(status='Delivered').count()
@@ -363,7 +366,51 @@ def change_password(request):
         'form': form
     })
 
+def export(request):
+    objs = Product.objects.all()
+    data =[]
 
+    for obj in objs:
+        data.append({
+            "product_name": obj.name,
+            "price": obj.price,
+            "category": obj.category,
+            "description": obj.description
+
+        })
+
+    pd.DataFrame(data).to_excel('output.xlsx')
+    return JsonResponse({
+        'status': 200
+    })
+
+
+def importing(request):
+    if request.method == 'POST':
+        file = request.FILES['files']
+        obj = Import.objects.create(
+            files = file
+        )
+        path = file.file
+        # print(f'{settings.BASE_DIR}/{path}')
+        
+        header_list = ['product_name','price','category','description']
+        df = pd.read_excel(path)
+        # df = pd.DataFrame(data, columns= header_list)
+        
+        # print(df)
+
+        for d in df.index:
+            # print(df['product_name'][d])
+            Product.objects.create(
+                name = df['product_name'][d],
+                price = df['price'][d],
+                category = df['category'][d],
+                description = df['description'][d]
+            )
+
+    return render(request, 'excel.html')
+ 
 @api_view(['GET'])
 def api(request):
 

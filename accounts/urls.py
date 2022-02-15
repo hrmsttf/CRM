@@ -68,6 +68,11 @@ urlpatterns = [
 
     path('change_password/', views.change_password, name='change_password'),
 
+    path('export/', views.export, name = "export"),
+    path('import/', views.importing, name = "import"),
+
+
+    # Api starts here...
     path('api/', views.api, name="api"),
 
     # JWT based login..
