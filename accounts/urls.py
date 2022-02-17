@@ -68,9 +68,12 @@ urlpatterns = [
 
     path('change_password/', views.change_password, name='change_password'),
 
+    # Import and Export
     path('export/', views.export, name = "export"),
     path('import/', views.importing, name = "import"),
 
+    #Transations
+    path('trans/', views.trans, name = "trans"),
 
     # Api starts here...
     path('api/', views.api, name="api"),

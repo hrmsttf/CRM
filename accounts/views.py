@@ -14,7 +14,7 @@ from django.contrib.auth.models import Group
  
 # Create your views here.
 from .models import *
-from .models import Customer, Order
+from .models import Customer, Order, User_Balance
 from .forms import OrderForm, CreateUserForm, CustomerForm
 from .decorators import unauthenticated_user, allowed_users, admin_only
 from django.contrib.auth import update_session_auth_hash
@@ -50,6 +50,10 @@ from faker import Faker
 from .thread import CreateProductThread
 import pandas as pd
 from django.conf import settings
+from .forms import Payment
+import decimal
+from django.db import transaction
+from django.http import HttpResponseRedirect
 
 # Simple Token base login..
 @csrf_exempt
@@ -410,6 +414,38 @@ def importing(request):
             )
 
     return render(request, 'excel.html')
+
+
+def trans(request):
+    if request.method == 'POST':
+        form = Payment(request.POST)
+        if form.is_valid():
+            try:
+                x = form.cleaned_data['payor']
+                y = form.cleaned_data['payee']
+                z = decimal.Decimal(form.cleaned_data['amount'])
+
+                with transaction.atomic():
+                    # payor = User_Balance.objects.select_for_update().get(name=x)
+                    # payee = User_Balance.objects.select_for_update().get(name=y)
+
+                    payor = User_Balance.objects.get(name=x)
+                    payor.balance -= z
+                    payor.save()
+
+                    payee = User_Balance.objects.get(name=y)
+                    payee.balance += z
+                    payee.save()
+
+                return redirect(request.META.get('HTTP_REFERER'))
+
+            except Exception as e:
+                return HttpResponse(e)
+
+
+    else:
+        form = Payment()
+    return render(request, 'accounts/transactions.html', {'form': form})
  
 @api_view(['GET'])
 def api(request):

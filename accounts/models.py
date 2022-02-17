@@ -69,5 +69,13 @@ class Import(models.Model):
     files = models.FileField(upload_to = "excel")
 
 
+class User_Balance(models.Model):
 
+    name = models.CharField(max_length=50,null=True)
+    balance = models.DecimalField(max_digits=5, decimal_places=2,null=True)
+    created = models.DateTimeField(auto_now_add=True,null=True)
+    updated = models.DateTimeField(auto_now=True,null=True)
+
+    def __str__(self):
+        return self.name
 

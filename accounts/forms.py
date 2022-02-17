@@ -24,3 +24,8 @@ class CreateUserForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
+
+class Payment(forms.Form):
+  payor = forms.CharField(max_length=30)
+  payee = forms.CharField(max_length=30)
+  amount = forms.CharField(max_length=30)
