@@ -34,8 +34,6 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'price', 'category', 'description','orders']
 
 
-
-
 # Show orders and it's product and customer
 class OrderSerializer(serializers.ModelSerializer):
 

@@ -169,7 +169,7 @@ def home(request):
 
     total_orders = orders.count()
     delivered = orders.filter(status='Delivered').count()
-    pending = orders.filter(status='Pending').count()
+    pending = orders.filter(status='pending').count()
 
     context = {'orders': orders, 'customers': customers,
                'total_orders': total_orders, 'delivered': delivered,
@@ -532,7 +532,7 @@ def orderCreate(request):
     return Response('Order created successfully..',)
 
 # {
-#     "status": "Out for delivery",
+#     "status": "pending",
 #     "customer": "22",
 #     "product": "2"
 # }
