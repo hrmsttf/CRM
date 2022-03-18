@@ -10,7 +10,7 @@ API VIEWS:
 	If you want to do specific action on model class you can use it.
 	(ListAPIView and Various mixin types and it provides serializer_class, pagination_class and filter_backend)
 
-3) ViewSet: (One class and one route)
+3) ViewSet: (One class and multiple routes)
 	
 	This is similer to ApiView, multiple actions in one class and basic or simple CRUD and also you need to define all route variable before you call in urls.py file.
 	We can use regular ViewSet (list,retrieve,create,update/partial_update,destroy) or ModelViewSet
@@ -23,8 +23,7 @@ Notes:
 	1)Difference between APIView & GenericView is only you cant use some builtin methods in your APIView class like queryset, serializer_class.
 	
 
-
 JWT:
 
-1).We need to use pyjwt library and add conf in the settings file.
-2).By default there is no logout functionality in jwt token. User wants to logout they need to be clear accesskey from local storage in frontend. or add token into blacklist table in the backend database.
+1). We need to use pyjwt library and add conf in the settings file.
+2). By default there is no logout functionality in jwt token. User wants to logout they need to be clear accesskey from local storage in frontend. or add token into blacklist table in the backend database.
