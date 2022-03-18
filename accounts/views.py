@@ -54,6 +54,7 @@ from .forms import Payment
 import decimal
 from django.db import transaction
 from django.http import HttpResponseRedirect
+from rest_framework.throttling import ScopedRateThrottle
 
 # Simple Token base login..
 @csrf_exempt
@@ -490,6 +491,7 @@ class IsSuperUser(IsAdminUser):
 
 # Pagination in function based view - rest
 def order_list(request):
+
     paginator = PageNumberPagination()
     paginator.page_size = 5
     orders = Order.objects.filter(is_active=1).order_by('-id')
@@ -613,6 +615,9 @@ class ClassOrderListGen(generics.ListAPIView):
     serializer_class = OrderSerializer
     pagination_class = PaginationPage
     permission_classes = [IsSuperUser]
+
+    # throttle_scope = 'robots'
+    # throttle_classes = (ScopedRateThrottle,)
 
     def get_queryset(self):
         order_list = Order.objects.filter(is_active = 1).order_by('-id')
