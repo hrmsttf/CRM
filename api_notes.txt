@@ -20,7 +20,7 @@ API VIEWS:
 	And if you want to code everything from scratch you can write your apis in function base view.
 
 Notes:
-	1)Difference between APIView & GenericView is only you cant use some builtin methods in your APIView class like queryset, serializer_class.
+	1)Difference between APIView & GenericView is only you are not able to use some builtin methods in your APIView class like queryset, serializer_class.
 	
 
 JWT:

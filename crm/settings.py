@@ -47,9 +47,11 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -203,9 +205,10 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '10/day',
+        'anon': '1000/day',
         'user': '1000/day',
         'robots': '3/day'
     }
 }
 
+CORS_ORIGIN_ALLOW_ALL = True

@@ -55,6 +55,7 @@ import decimal
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from rest_framework.throttling import ScopedRateThrottle
+from django.db.models import Count
 
 # Simple Token base login..
 @csrf_exempt
@@ -499,6 +500,21 @@ def order_list(request):
     serializer = OrderSerializer(result_page, many=True)
     # return Response(serializer.data)
     return paginator.get_paginated_response(serializer.data)
+
+@api_view(['GET'])
+def order_counts(request):
+
+    json = {
+        'total_orders': Order.objects.filter(is_active=1).count(),
+        'pending_orders': Order.objects.filter(is_active=1, status="pending").count(),
+        'delivered_orders': Order.objects.filter(is_active=1, status="Delivered").count(),
+        'ofd_orders': Order.objects.filter(is_active=1, status="Out for delivery").count(),
+      
+    }
+
+    result = Order.objects.all().values('status').annotate(total=Count('status')).order_by('status')
+    # print(result)
+    return Response(json)
 
 
 @api_view(['GET'])

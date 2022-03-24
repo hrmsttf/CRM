@@ -96,6 +96,8 @@ urlpatterns = [
     path('api/customer-list/', views.customer_list, name="customer-list"),
     path('api/product-list/', views.product_list, name="product-list"),
 
+    path('api/order-counts/', views.order_counts, name="order-counts"),
+
     # Api URLS (ApiView)
     path('api/order-list-apiview/', views.ClassOrderList.as_view(), name="order-list-apiview"),
     path('api/order-create-apiview/', views.ClassOrderList.as_view(), name="order-create-apiview"),
