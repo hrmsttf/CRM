@@ -494,12 +494,13 @@ class IsSuperUser(IsAdminUser):
 def order_list(request):
 
     paginator = PageNumberPagination()
-    paginator.page_size = 5
+    paginator.page_size = 1
     orders = Order.objects.filter(is_active=1).order_by('-id')
     result_page = paginator.paginate_queryset(orders, request)
     serializer = OrderSerializer(result_page, many=True)
     # return Response(serializer.data)
     return paginator.get_paginated_response(serializer.data)
+
 
 @api_view(['GET'])
 def order_counts(request):
@@ -527,10 +528,36 @@ def customer_list(request):
 
 @api_view(['GET'])
 def product_list(request):
-    customers = Product.objects.filter(is_active=1).order_by('-id')
+    products = Product.objects.filter(is_active=1).order_by('-id')
     # print(orders[0].customer.name)
-    serializer = ProductSerializer(customers, many=True)
+    serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
+
+    # paginator = PageNumberPagination()
+    # paginator.page_size = 5
+    # products = Product.objects.filter(is_active=1).order_by('-id')
+    # result_page = paginator.paginate_queryset(products, request)
+    # serializer = ProductSerializer(result_page, many=True)
+    # # return Response(serializer.data)
+    # return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(['GET'])
+def product_detail(request, pk):
+    product = Product.objects.get(id=pk)
+    serializer = ProductSerializer(product, many=False)
+    return Response(serializer.data)
+
+
+@api_view(['PUT'])
+def product_update(request, pk):
+    product = Product.objects.get(id=pk)
+    serializer = ProductSerializer(instance=product, data=request.data)
+
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+
+    return Response(serializer.data, status= HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -538,6 +565,7 @@ def orderDetail(request, pk):
     tasks = Order.objects.get(id=pk)
     serializer = OrderSerializer(tasks, many=False)
     return Response(serializer.data)
+    
 
 
 @api_view(['POST'])
