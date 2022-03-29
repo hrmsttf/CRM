@@ -95,6 +95,7 @@ urlpatterns = [
     path('api/order-delete/<str:pk>/', views.orderDelete, name="order-delete"),
     path('api/customer-list/', views.customer_list, name="customer-list"),
     path('api/product-list/', views.product_list, name="product-list"),
+    path('api/product-add/', views.product_add, name="product-add"),
     path('api/product-detail/<str:pk>/', views.product_detail, name="product-detail"),
     path('api/product-update/<str:pk>/', views.product_update, name="product-update"),
 

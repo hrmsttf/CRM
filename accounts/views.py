@@ -492,9 +492,9 @@ class IsSuperUser(IsAdminUser):
 
 # Pagination in function based view - rest
 def order_list(request):
-
+    
     paginator = PageNumberPagination()
-    paginator.page_size = 1
+    paginator.page_size = 2
     orders = Order.objects.filter(is_active=1).order_by('-id')
     result_page = paginator.paginate_queryset(orders, request)
     serializer = OrderSerializer(result_page, many=True)
@@ -528,18 +528,28 @@ def customer_list(request):
 
 @api_view(['GET'])
 def product_list(request):
-    products = Product.objects.filter(is_active=1).order_by('-id')
-    # print(orders[0].customer.name)
-    serializer = ProductSerializer(products, many=True)
-    return Response(serializer.data)
-
-    # paginator = PageNumberPagination()
-    # paginator.page_size = 5
     # products = Product.objects.filter(is_active=1).order_by('-id')
-    # result_page = paginator.paginate_queryset(products, request)
-    # serializer = ProductSerializer(result_page, many=True)
-    # # return Response(serializer.data)
-    # return paginator.get_paginated_response(serializer.data)
+    # # print(orders[0].customer.name)
+    # serializer = ProductSerializer(products, many=True)
+    # return Response(serializer.data)
+
+    paginator = PageNumberPagination()
+    paginator.page_size = 2
+    products = Product.objects.filter(is_active=1).order_by('-id')
+    result_page = paginator.paginate_queryset(products, request)
+    serializer = ProductSerializer(result_page, many=True)
+    # return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(['POST'])
+def product_add(request):
+    serializer = ProductSerializer(data=request.data)
+
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+
+    return Response('Product added successfully..',)
 
 
 @api_view(['GET'])
