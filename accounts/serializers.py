@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'is_staff']
+        fields = ['username', 'email', 'first_name', 'last_name']
 
 # Show orders and it's customer and product details
 class ProductSerializer(serializers.ModelSerializer):
@@ -77,7 +77,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
-        fields = ['id', 'name', 'phone', 'email', 'orders']
+        fields = ['id', 'user_id', 'name', 'phone', 'email', 'orders']
         depth = 1
 
 

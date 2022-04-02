@@ -93,7 +93,10 @@ urlpatterns = [
     path('api/order-detail/<str:pk>/', views.orderDetail, name="order-detail"),
     path('api/order-update/<str:pk>/', views.orderUpdate, name="order-update"),
     path('api/order-delete/<str:pk>/', views.orderDelete, name="order-delete"),
+
     path('api/customer-list/', views.customer_list, name="customer-list"),
+    path('api/customer-add/', views.customer_add, name="customer-add"),
+
     path('api/product-list/', views.product_list, name="product-list"),
     path('api/product-add/', views.product_add, name="product-add"),
     path('api/product-detail/<str:pk>/', views.product_detail, name="product-detail"),

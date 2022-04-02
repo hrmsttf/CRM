@@ -306,6 +306,7 @@ def createCustomer(request):
 
             user = User.objects.create_user(
                 username=username, email=email, password='admin@123')
+
             group = Group.objects.get(name='customer')
             user.groups.add(group)
 
@@ -520,10 +521,48 @@ def order_counts(request):
 
 @api_view(['GET'])
 def customer_list(request):
+    
+    # customers = Customer.objects.filter(is_active=1).order_by('-id')
+    # # print(orders[0].customer.name)
+    # serializer = CustomerSerializer(customers, many=True)
+    # return Response(serializer.data)
+
+    paginator = PageNumberPagination()
+    paginator.page_size = 2
     customers = Customer.objects.filter(is_active=1).order_by('-id')
-    # print(orders[0].customer.name)
-    serializer = CustomerSerializer(customers, many=True)
-    return Response(serializer.data)
+    result_page = paginator.paginate_queryset(customers, request)
+    serializer = CustomerSerializer(result_page, many=True)
+    # return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
+
+@api_view(['POST'])
+def customer_add(request):
+    print(request.data)
+
+    serializer = UserSerializer(data=request.data)
+
+    if serializer.is_valid(raise_exception=True):
+        # serializer.save()
+
+        username = request.data['username']
+        email = request.data['email']
+        first_name = request.data['first_name']
+        last_name = request.data['last_name']
+        phone = request.data['phone']
+        # print(username);
+
+        user = User.objects.create_user(
+            username=username, first_name=first_name, last_name=last_name, email=email, password='admin@123')
+            
+        group = Group.objects.get(name='customer')
+        user.groups.add(group)
+
+        customer = Customer.objects.create(
+            name=username, email=email, phone=phone)
+        customer.user = user
+        customer.save()
+
+    return Response('Customer created successfully..',)
 
 
 @api_view(['GET'])
