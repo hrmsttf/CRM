@@ -160,7 +160,7 @@ def logoutPage(request):
 @admin_only
 def home(request):
 
-    # Threading is concept to run operation in the background because some tasks will take more to complete that time we can use threading concept.. 
+    # Threading is concept to run operation in the background because some tasks will take more time to complete task that time we can use threading.. 
     # count = 5
     # CreateProductThread(count).start()
 

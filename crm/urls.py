@@ -21,8 +21,9 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('',include('accounts.urls'))
-   
+    
 ]
 
 

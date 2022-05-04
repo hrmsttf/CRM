@@ -28,20 +28,21 @@ SECRET_KEY = 'django-insecure-r-8d9$^$jm=$_dzd&!+ol=18x^l65jwxp(isct_346!+$8-(jf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    
+    'jazzmin',
+    'jet',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    
     'accounts',
     'rest_framework',
     'rest_framework.authtoken',

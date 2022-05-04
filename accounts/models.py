@@ -43,6 +43,7 @@ class Product(models.Model):
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     # tags = models.ManyToManyField(Tag)
     is_active = models.PositiveIntegerField(null=True, default=1)
+    image = models.ImageField(upload_to ='product_images/', null=True)
 
     def __str__(self):
         return self.name

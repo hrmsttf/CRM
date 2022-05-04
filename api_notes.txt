@@ -22,7 +22,6 @@ API VIEWS:
 Notes:
 	1)Difference between APIView & GenericView is only you are not able to use some builtin methods in your APIView class like queryset, serializer_class.
 	
-
 JWT:
 
 1). We need to use pyjwt library and add conf in the settings file.
