@@ -19,6 +19,10 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 
+admin.site.site_header  =  "CRM"  
+admin.site.site_title  =  "CRM ADMIN"
+admin.site.index_title  =  "CRM ADMIN"
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
